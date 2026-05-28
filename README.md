@@ -21,20 +21,19 @@ PDF / DOI → structured CSV dataset
 
 Each row = one study. Each column = one variable
 (sample size, effect size, population, 
-measurement method, confidence interval, ...).
+measurement method, confidence interval, p-values ...).
 
 ## Current Scope
 
-Focused on: training load & injury risk in 
-professional football.
+Focused on: Sports Performance
 
 ## Long-Term Vision
 
 A living, open-source dataset that grows as 
-new research is published — allowing researchers 
+new research is published - allowing researchers 
 with small samples to benchmark their findings 
 against accumulated evidence.
 
 ## Status
 
-🚧 Early development — contributions welcome
+🚧 Early development - contributions welcome

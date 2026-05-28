@@ -1,0 +1,6 @@
+.env
+data/pdfs/
+data/dataset.csv
+data/processed.json
+__pycache__/
+*.pyc
