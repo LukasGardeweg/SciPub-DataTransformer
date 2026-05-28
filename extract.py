@@ -21,12 +21,12 @@ import sys
 import time
 from pathlib import Path
 
+import fitz  # pymupdf
 from groq import Groq
-import pdfplumber
 
 # ── Config ──────────────────────────────────────────────────────────────────
 MODEL         = "llama-3.3-70b-versatile"
-MAX_PDF_CHARS = 25_000  # Groq free tier limit (~12k tokens); covers abstract+methods+results
+MAX_PDF_CHARS = 20_000  # Groq free tier limit (~12k tokens input); results section is prioritised
 
 DATA_DIR      = Path("data")
 PDF_DIR       = DATA_DIR / "pdfs"
@@ -101,7 +101,8 @@ Extract structured data from the paper and return ONLY valid JSON with this exac
 
 Rules:
 - Create one "outcomes" entry per outcome_variable x group_label x measurement_timepoint combination
-- Extract ALL reported outcome variables (primary and secondary)
+- Focus on the PRIMARY reported outcomes first; include secondary ones only if space permits
+- Limit to a maximum of 30 outcome entries total
 - Use null for any value not explicitly stated -- never invent or interpolate numbers
 - Do not calculate effect sizes or p-values yourself; only report what the paper states
 - Return ONLY the JSON object, no markdown fences, no explanation text\
@@ -119,9 +120,46 @@ def load_env() -> None:
 
 
 def extract_pdf_text(pdf_path: Path) -> str:
-    with pdfplumber.open(pdf_path) as pdf:
-        pages = [page.extract_text() or "" for page in pdf.pages]
-    return "\n".join(pages)[:MAX_PDF_CHARS]
+    doc   = fitz.open(str(pdf_path))
+    pages = [page.get_text() for page in doc]
+    full  = "\n".join(pages)
+    lower = full.lower()
+
+    # always keep the opening (~4000 chars): abstract, participants, study design
+    head = full[:4000]
+
+    # find results / first table and take as much as possible
+    results_start = len(full)
+    for marker in ("results", "table 1", "▶table"):
+        idx = lower.find(marker)
+        if idx != -1 and idx < results_start:
+            results_start = idx
+
+    results_part = full[results_start : results_start + (MAX_PDF_CHARS - 4000)]
+
+    return head + "\n\n[...]\n\n" + results_part
+
+
+def repair_truncated_json(raw: str) -> dict | None:
+    """Try to recover a truncated JSON by salvaging complete outcome entries."""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    # find last complete outcome object
+    last_close = raw.rfind("},")
+    if last_close == -1:
+        last_close = raw.rfind("}")
+    if last_close == -1:
+        return None
+    truncated = raw[:last_close + 1]
+    # close open arrays/objects
+    for closing in ("]}", "]}"):
+        try:
+            return json.loads(truncated + closing)
+        except json.JSONDecodeError:
+            pass
+    return None
 
 
 def call_groq(client: Groq, text: str, doi: str) -> dict | None:
@@ -129,6 +167,7 @@ def call_groq(client: Groq, text: str, doi: str) -> dict | None:
         response = client.chat.completions.create(
             model=MODEL,
             temperature=0,
+            max_tokens=4096,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"Extract data from this paper (DOI: {doi}):\n\n{text}"},
@@ -137,10 +176,10 @@ def call_groq(client: Groq, text: str, doi: str) -> dict | None:
         raw = response.choices[0].message.content.strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-        return json.loads(raw)
-    except json.JSONDecodeError as e:
-        print(f"  JSON parse error: {e}")
-        return None
+        result = repair_truncated_json(raw)
+        if result is None:
+            print("  JSON parse error: could not recover")
+        return result
     except Exception as e:
         print(f"  API error: {e}")
         return None

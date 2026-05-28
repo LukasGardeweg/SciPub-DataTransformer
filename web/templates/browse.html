@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Browse Studies{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>Browse Studies</h1>
+      <p>Search for a study by DOI or explore the full dataset.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <form method="GET" action="{{ url_for('browse') }}" class="search-bar">
+      <input
+        type="text"
+        name="doi"
+        class="form-control"
+        placeholder="Search by DOI — e.g. 10.1055/a-1273-7589"
+        value="{{ q }}"
+        autofocus
+      >
+      <button type="submit" class="btn btn-primary">Search</button>
+      {% if q %}
+        <a href="{{ url_for('browse') }}" class="btn btn-outline">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if not_found %}
+    <div class="card empty-state">
+      <h3>No dataset found for &ldquo;{{ q }}&rdquo;</h3>
+      <p>This DOI has not been processed yet. Want to contribute?</p>
+      <a href="{{ url_for('submit', doi=q) }}" class="btn btn-primary" style="margin-top:1rem">
+        Submit this study &rarr;
+      </a>
+    </div>
+
+  {% elif studies %}
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>DOI</th>
+              <th>Title</th>
+              <th>Year</th>
+              <th>Journal</th>
+              <th>N</th>
+              <th>Intervention</th>
+              <th style="text-align:center">Data points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in studies %}
+            <tr>
+              <td style="white-space:nowrap">
+                <code style="font-size:.78rem;color:var(--muted)">{{ s.doi }}</code>
+              </td>
+              <td style="max-width:280px;font-size:.85rem">{{ s.title }}</td>
+              <td style="white-space:nowrap">{{ s.year }}</td>
+              <td style="max-width:160px;font-size:.82rem;color:var(--muted)">{{ s.journal }}</td>
+              <td style="text-align:center">{{ s.n_total or '—' }}</td>
+              <td style="max-width:160px;font-size:.82rem">{{ s.intervention_type }}</td>
+              <td style="text-align:center">
+                <span class="badge badge-blue">{{ s.rows }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="card empty-state">
+      <h3>No studies yet</h3>
+      <p>The dataset is empty. Be the first to contribute.</p>
+      <a href="{{ url_for('submit') }}" class="btn btn-primary" style="margin-top:1rem">Submit a Study</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

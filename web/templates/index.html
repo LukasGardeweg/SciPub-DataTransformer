@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="container">
+    <h1>SportsEvidence</h1>
+    <p>
+      A community-curated open dataset of sports science intervention studies.
+      Search, explore, and contribute structured data extracted from peer-reviewed publications.
+    </p>
+    <div class="hero-actions">
+      <a href="{{ url_for('browse') }}" class="btn btn-white">Browse Studies</a>
+      <a href="{{ url_for('submit') }}" class="btn btn-ghost">Submit a Study</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ study_count }}</div>
+      <div class="stat-label">Studies in Dataset</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ row_count }}</div>
+      <div class="stat-label">Data Points Extracted</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ approved }}</div>
+      <div class="stat-label">Community Submissions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ pending }}</div>
+      <div class="stat-label">Pending Reviews</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">How it works</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Search by DOI</h3>
+        <p>Enter a DOI to check whether a structured dataset already exists for that study.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Submit the PDF</h3>
+        <p>
+          If the study hasn't been processed yet, upload the full-text PDF.
+          We only accept randomised and controlled intervention studies.
+        </p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Review &amp; Extraction</h3>
+        <p>
+          We review each submission to confirm it qualifies. Approved PDFs are automatically
+          extracted by AI and added to the open dataset.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>Admin Panel</h1>
+      <p>Review community submissions</p>
+    </div>
+    <a href="{{ url_for('admin_logout') }}" class="btn btn-outline">Logout</a>
+  </div>
+
+  {% if not has_groq %}
+    <div class="alert alert-warning">
+      GROQ_API_KEY is not set in .env — approving a request will fail. Add it before approving.
+    </div>
+  {% endif %}
+
+  <div class="tabs">
+    <a href="{{ url_for('admin', tab='pending') }}"
+       class="tab{% if tab == 'pending' %} active{% endif %}">
+      Pending
+      <span class="badge badge-pending">{{ counts.pending }}</span>
+    </a>
+    <a href="{{ url_for('admin', tab='approved') }}"
+       class="tab{% if tab == 'approved' %} active{% endif %}">
+      Approved
+      <span class="badge badge-approved">{{ counts.approved }}</span>
+    </a>
+    <a href="{{ url_for('admin', tab='rejected') }}"
+       class="tab{% if tab == 'rejected' %} active{% endif %}">
+      Rejected
+      <span class="badge badge-rejected">{{ counts.rejected }}</span>
+    </a>
+  </div>
+
+  {% if requests %}
+    {% for r in requests %}
+    <div class="card request-card">
+      <div class="request-card-header">
+        <div style="flex:1;min-width:0">
+          <div class="request-doi">{{ r.doi }}</div>
+          <div class="request-title">{{ r.title or '(no title provided)' }}</div>
+          <div class="request-meta">
+            {% if r.submitter_name %}{{ r.submitter_name }}{% else %}Anonymous{% endif %}
+            {% if r.submitter_email %}&mdash; {{ r.submitter_email }}{% endif %}
+            &mdash; submitted {{ r.submitted_at[:16] }}
+          </div>
+          {% if tab in ('approved', 'rejected') and r.review_notes %}
+            <div class="request-meta" style="margin-top:.35rem">
+              <strong>Notes:</strong> {{ r.review_notes }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="request-actions">
+          <a
+            href="{{ url_for('serve_pdf', filename=r.pdf_filename) }}"
+            target="_blank"
+            class="btn btn-outline btn-sm"
+          >View PDF</a>
+
+          {% if tab == 'pending' %}
+            <form
+              method="POST"
+              action="{{ url_for('approve', req_id=r.id) }}"
+              onsubmit="return confirm('Approve this study and run extraction?')"
+              style="display:inline"
+            >
+              <button type="submit" class="btn btn-success btn-sm">Approve</button>
+            </form>
+
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              onclick="
+                var f = document.getElementById('reject-{{ r.id }}');
+                f.classList.toggle('open');
+              "
+            >Reject</button>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if tab == 'pending' %}
+      <div id="reject-{{ r.id }}" class="reject-form">
+        <form method="POST" action="{{ url_for('reject', req_id=r.id) }}">
+          <div class="reject-row">
+            <textarea
+              name="reason"
+              class="form-control"
+              rows="2"
+              placeholder="Reason for rejection — e.g. systematic review, observational study, non-sports population"
+            ></textarea>
+            <button type="submit" class="btn btn-danger">Confirm</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-state" style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow)">
+      <h3>No {{ tab }} requests</h3>
+      <p>Nothing to review here.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

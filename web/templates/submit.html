@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Submit a Study{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>Submit a Study</h1>
+      <p>Contribute a sports science intervention study to the open dataset.</p>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <div class="card">
+      <form method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+          <label class="form-label">DOI <span class="req">*</span></label>
+          <input
+            type="text"
+            name="doi"
+            class="form-control"
+            placeholder="10.xxxx/your-doi"
+            value="{{ doi or '' }}"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Study Title <span class="opt">(optional)</span></label>
+          <input
+            type="text"
+            name="title"
+            class="form-control"
+            placeholder="Helps us identify the study faster"
+            value="{{ title or '' }}"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">PDF File <span class="req">*</span></label>
+          <input type="file" name="pdf" class="form-control" accept=".pdf" required>
+          <div class="form-hint">Full-text PDF of the paper. Max 32 MB.</div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="form-group">
+          <label class="form-label">Your Name <span class="opt">(optional)</span></label>
+          <input
+            type="text"
+            name="name"
+            class="form-control"
+            placeholder="For attribution in the dataset"
+            value="{{ name or '' }}"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Email <span class="opt">(optional)</span></label>
+          <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="We'll notify you when the study is approved"
+            value="{{ email or '' }}"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Study</button>
+      </form>
+    </div>
+
+    <div>
+      <div class="info-box info-box-yes">
+        <h3>What we accept</h3>
+        <ul>
+          <li>Randomised controlled trials (RCT)</li>
+          <li>Non-randomised controlled trials</li>
+          <li>Crossover designs</li>
+          <li>Pre–post intervention studies</li>
+          <li>Any sport or exercise modality</li>
+        </ul>
+      </div>
+
+      <div class="info-box info-box-no">
+        <h3>What we don't accept</h3>
+        <ul>
+          <li>Systematic reviews / meta-analyses</li>
+          <li>Observational / epidemiological studies</li>
+          <li>Case reports / case series</li>
+          <li>Non-sports clinical populations only</li>
+          <li>Conference abstracts</li>
+        </ul>
+      </div>
+
+      <div class="info-box" style="background:var(--bg);border:1px solid var(--border);color:var(--muted)">
+        <h3 style="color:var(--text)">Review process</h3>
+        <p style="font-size:.875rem;line-height:1.7">
+          Every submission is manually reviewed before extraction. We check that the study design
+          qualifies and the PDF contains usable numerical data. Typical review time: 1&ndash;3 days.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

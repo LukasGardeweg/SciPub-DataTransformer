@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SportsEvidence{% endblock %} — Open Sports Science Dataset</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="{{ url_for('index') }}" class="nav-brand">SportsEvidence</a>
+    <div class="nav-links">
+      <a href="{{ url_for('browse') }}"{% if request.endpoint == 'browse' %} class="active"{% endif %}>Browse</a>
+      <a href="{{ url_for('submit') }}"{% if request.endpoint == 'submit' %} class="active"{% endif %}>Submit Study</a>
+    </div>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container" style="margin-top:1rem">
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="container">
+    SportsEvidence &mdash; Open dataset for sports science intervention studies
+  </div>
+</footer>
+
+</body>
+</html>
